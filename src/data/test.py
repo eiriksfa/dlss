@@ -10,12 +10,6 @@ p = data_path() / 'blocks/'
 # connect to the AirSim simulator
 client = airsim.MultirotorClient()
 client.confirmConnection()
-#client.enableApiControl(True)
-#client.armDisarm(True)
-
-# Async methods returns Future. Call join() to wait for task to complete.
-#client.takeoffAsync().join()
-#client.moveToPositionAsync(-10, 10, -10, 5).join()
 
 time.sleep(3)
 start = 102
