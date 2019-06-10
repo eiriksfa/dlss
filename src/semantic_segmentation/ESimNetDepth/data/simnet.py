@@ -1,9 +1,7 @@
 from collections import OrderedDict
 import torch.utils.data as data
-import utils # from src.semantic_segmentation.ESimNetDepth.data
+import src.semantic_segmentation.ESimNetDepth.data.utils as utils  # from src.semantic_segmentation.ESimNetDepth.data
 from pathlib import Path
-
-DATA_PATH = Path('F:/data/blocks/')
 
 
 class SimNet(data.Dataset):
@@ -19,6 +17,7 @@ class SimNet(data.Dataset):
         self.train_data = []
         self.val_data = []
         self.test_data = []
+        self.color_encoding = self.get_color_encoding()
 
         print(self.mode)
 
@@ -84,3 +83,12 @@ class SimNet(data.Dataset):
 
     def __len__(self):
         return self.length
+
+    def get_color_encoding(self):
+        return OrderedDict([
+            ('unsafe', (0, 0, 0)),
+            ('safe', (0, 0, 255)),
+            ('msafe', (0, 255, 255)),
+            ('background', (255, 0, 0)),
+            ('unlabeled', (255, 255, 255))
+        ])
