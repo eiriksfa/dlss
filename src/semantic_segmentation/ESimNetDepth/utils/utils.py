@@ -80,7 +80,7 @@ def save_checkpoint(model, optimizer, epoch, miou, name, save_dir):
         summary_file.write("Mean IoU: {0}\n". format(miou))
 
 
-def load_checkpoint(model, optimizer, folder_dir, filename):
+def load_checkpoint(model, folder_dir, filename):
     """Saves the model in a specified directory with a specified name.save
 
     Keyword arguments:

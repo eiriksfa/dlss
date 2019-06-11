@@ -33,7 +33,7 @@ COLOR_STD = [0.277856, 0.286230, 0.291129]
 # Consts / Args
 IMAGE_HEIGHT = 912
 IMAGE_WIDTH = 1368
-MODE = 'train'
+MODE = 'test'
 WEIGHING = 'enet'
 ARCH = 'rgbd'
 
@@ -313,6 +313,7 @@ if __name__ == '__main__':
     elif MODE == 'test':
         # Intialize a new ENet model
         num_classes = len(class_encoding)
+        print(num_classes)
         if ARCH == 'rgb':
             model = ENet(num_classes).to(device)
         elif ARCH == 'rgbd':
@@ -328,7 +329,7 @@ if __name__ == '__main__':
         optimizer = optim.Adam(model.parameters())
 
         # Load the previoulsy saved model state to the ENet model
-        model = utils.load_checkpoint(model, optimizer, SAVE_DIR, NAME)
+        model = utils.load_checkpoint(model, SAVE_DIR, NAME)
         print(model)
         test(model, test_loader, w_class, class_encoding)
     else:
