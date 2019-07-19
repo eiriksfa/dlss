@@ -20,6 +20,8 @@ from src.semantic_segmentation.ESimNetDepth.data.utils import enet_weighing, med
 import src.semantic_segmentation.ESimNetDepth.utils.utils as utils
 
 from src.semantic_segmentation.ESimNetDepth.data.simnet import SimNet as dataset
+import time
+from tensorboardX import SummaryWriter
 
 # Get the arguments
 #args = get_arguments()
@@ -49,13 +51,15 @@ W_DECAY = 2e-4  # L2 regularization factor. Default: 2e-4
 
 LOAD_DEPTH = True
 N_WORKERS = 7
-ROOT_DIR = Path('F:/data/blocks/')
-SAVE_DIR = Path('F:/data/blocks/models')
+ROOT_DIR = Path('/mnt/data/data/dronespot_1/')
+SAVE_DIR = Path('/mnt/data/data/dronespot_1/models')
 NAME = 'TEST'
 PRINT_STEP = 25
 VALIDATE_STEP = 10
 
-LOAD_WEIGHING = Path('F:/data/blocks/weighing.txt')
+LOAD_WEIGHING = Path('/mnt/data/data/dronespot_1/weighing.txt')
+
+writer = SummaryWriter('logs/1xv1')
 
 
 def load_dataset(dataset):
@@ -102,16 +106,6 @@ def load_dataset(dataset):
     print("Image size:", images.size())
     print("Label size:", labels.size())
     print("Class-color encoding:", class_encoding)
-
-    # Show a batch of samples and labels TODO
-    # if args.imshow_batch:
-    #     print("Close the figure window to continue...")
-    #     label_to_rgb = transforms.Compose([
-    #         ext_transforms.LongTensorToRGBPIL(class_encoding),
-    #         transforms.ToTensor()
-    #     ])
-    #     color_labels = utils.batch_transform(labels, label_to_rgb)
-    #     utils.imshow_batch(images, color_labels)
 
     # Get class weights from the selected weighing technique
     print("\nWeighing technique:", WEIGHING)
@@ -198,8 +192,14 @@ def train(train_loader, val_loader, class_weights, class_encoding):
     for epoch in range(start_epoch, EPOCHS):
         print(">>>> [Epoch: {0:d}] Training".format(epoch))
 
+        writer.add_scalar('time', time.time(), epoch)
+
         lr_updater.step(epoch)
         epoch_loss, (iou, miou) = train.run_epoch(PRINT_STEP)
+
+        writer.add_scalar('train_loss', epoch_loss, epoch)
+        writer.add_scalar('train_iou', iou, epoch)
+        writer.add_scalar('train_miou', miou, epoch)
 
         print(">>>> [Epoch: {0:d}] Avg. loss: {1:.4f} | Mean IoU: {2:.4f}".
               format(epoch, epoch_loss, miou))
@@ -208,6 +208,10 @@ def train(train_loader, val_loader, class_weights, class_encoding):
             print(">>>> [Epoch: {0:d}] Validation".format(epoch))
 
             loss, (iou, miou) = val.run_epoch(PRINT_STEP)
+
+            writer.add_scalar('val_loss', loss, epoch)
+            writer.add_scalar('val_iou', iou, epoch)
+            writer.add_scalar('val_miou', miou, epoch)
 
             print(">>>> [Epoch: {0:d}] Avg. loss: {1:.4f} | Mean IoU: {2:.4f}".
                   format(epoch, loss, miou))
@@ -223,7 +227,9 @@ def train(train_loader, val_loader, class_weights, class_encoding):
                 best_miou = miou
                 utils.save_checkpoint(model, optimizer, epoch + 1, best_miou,
                                       NAME, SAVE_DIR)
+                writer.add_scalar('best_model', 1, epoch)
 
+    writer.add_scalar('time', time.time(), EPOCHS)
     return model
 
 
@@ -258,12 +264,6 @@ def test(model, test_loader, class_weights, class_encoding):
     for key, class_iou in zip(class_encoding.keys(), iou):
         print("{0}: {1:.4f}".format(key, class_iou))
 
-    # Show a batch of samples and labels TODO
-    # if args.imshow_batch:
-    # print("A batch of predictions from the test set...")
-    # images, _ = iter(test_loader).next()
-    # predict(model, images, class_encoding)
-
 
 def predict(model, images, class_encoding):
     images = images.to(device)
@@ -293,14 +293,6 @@ if __name__ == '__main__':
 
     # Fail fast if the saving directory doesn't exist
     assert SAVE_DIR.is_dir()
-    #
-    # # Import the requested dataset
-    # if args.dataset.lower() == 'scannet':
-    #     from data import ScanNet as dataset
-    # else:
-    #     # Should never happen...but just in case it does
-    #     raise RuntimeError("\"{0}\" is not a supported dataset.".format(
-    #         args.dataset))
 
     loaders, w_class, class_encoding = load_dataset(dataset)
     train_loader, val_loader, test_loader = loaders
