@@ -51,15 +51,15 @@ W_DECAY = 2e-4  # L2 regularization factor. Default: 2e-4
 
 LOAD_DEPTH = True
 N_WORKERS = 7
-ROOT_DIR = Path('/mnt/data/data/dronespot_1/')
-SAVE_DIR = Path('/mnt/data/data/dronespot_1/models')
+ROOT_DIR = Path('~/Documents/data/dronespot_1/')
+SAVE_DIR = Path('~/Documents/data/dronespot_1/models')
 NAME = 'TEST'
 PRINT_STEP = 25
 VALIDATE_STEP = 10
 
-LOAD_WEIGHING = Path('/mnt/data/data/dronespot_1/weighing.txt')
+LOAD_WEIGHING = Path('~/Documents/data/dronespot_1/weighing_1368.txt')
 
-writer = SummaryWriter('logs/1xv1')
+writer = SummaryWriter('logs/1368v1')
 
 
 def load_dataset(dataset):
