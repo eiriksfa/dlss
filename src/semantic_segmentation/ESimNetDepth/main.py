@@ -35,7 +35,7 @@ COLOR_STD = [0.277856, 0.286230, 0.291129]
 # Consts / Args
 IMAGE_HEIGHT = 912
 IMAGE_WIDTH = 1368
-MODE = 'test'
+MODE = 'full'
 WEIGHING = 'enet'
 ARCH = 'rgbd'
 
@@ -51,15 +51,15 @@ W_DECAY = 2e-4  # L2 regularization factor. Default: 2e-4
 
 LOAD_DEPTH = True
 N_WORKERS = 7
-ROOT_DIR = Path('~/Documents/data/dronespot_1/')
-SAVE_DIR = Path('~/Documents/data/dronespot_1/models')
-NAME = 'TEST'
+ROOT_DIR = Path('/home/eirik/Documents/data/dronespot_1/')
+SAVE_DIR = Path('/home/eirik/Documents/data/dronespot_1/models')
+NAME = '1368v2'
 PRINT_STEP = 25
-VALIDATE_STEP = 10
+VALIDATE_STEP = 1
 
-LOAD_WEIGHING = Path('~/Documents/data/dronespot_1/weighing_1368.txt')
+LOAD_WEIGHING = Path('/home/eirik/Documents/data/dronespot_1/weighing_1368.txt')
 
-writer = SummaryWriter('logs/1368v1')
+writer = SummaryWriter('logs/1368v2')
 
 
 def load_dataset(dataset):
@@ -198,7 +198,7 @@ def train(train_loader, val_loader, class_weights, class_encoding):
         epoch_loss, (iou, miou) = train.run_epoch(PRINT_STEP)
 
         writer.add_scalar('train_loss', epoch_loss, epoch)
-        writer.add_scalar('train_iou', iou, epoch)
+        #writer.add_scalar('train_iou', iou, epoch)
         writer.add_scalar('train_miou', miou, epoch)
 
         print(">>>> [Epoch: {0:d}] Avg. loss: {1:.4f} | Mean IoU: {2:.4f}".
@@ -210,7 +210,7 @@ def train(train_loader, val_loader, class_weights, class_encoding):
             loss, (iou, miou) = val.run_epoch(PRINT_STEP)
 
             writer.add_scalar('val_loss', loss, epoch)
-            writer.add_scalar('val_iou', iou, epoch)
+            #writer.add_scalar('val_iou', iou, epoch)
             writer.add_scalar('val_miou', miou, epoch)
 
             print(">>>> [Epoch: {0:d}] Avg. loss: {1:.4f} | Mean IoU: {2:.4f}".

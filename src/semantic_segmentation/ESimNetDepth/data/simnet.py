@@ -86,9 +86,9 @@ class SimNet(data.Dataset):
 
     def get_color_encoding(self):
         return OrderedDict([
-            ('unsafe', (0, 0, 0)),
+            ('unsafe', (255, 0, 0)),
             ('safe', (0, 0, 255)),
             ('msafe', (0, 255, 255)),
-            ('background', (255, 0, 0)),
+            ('background', (0, 0, 0)),
             ('unlabeled', (255, 255, 255))
         ])

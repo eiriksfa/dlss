@@ -67,6 +67,7 @@ def simnet_loader_depth(data_path, depth_path, label_path, color_mean=[0., 0., 0
 
     # Load image
     rgb = np.array(imageio.imread(data_path))
+    rgb = rgb[:, :, :3]  # Remove alpha
     # Reshape rgb from H x W x C to C x H x W
     rgb = np.moveaxis(rgb, 2, 0)
     # Define normalizing transform
