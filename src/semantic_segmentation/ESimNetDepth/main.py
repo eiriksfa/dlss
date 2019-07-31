@@ -57,9 +57,9 @@ NAME = '1368v2'
 PRINT_STEP = 25
 VALIDATE_STEP = 1
 
-LOAD_WEIGHING = Path('/home/eirik/Documents/data/dronespot_1/weighing_1368.txt')
+LOAD_WEIGHING = Path('/home/eirik/Documents/data/dronespot_1/weighing_' + NAME + '.txt')
 
-writer = SummaryWriter('logs/1368v2')
+writer = SummaryWriter('logs/' + NAME)
 
 
 def load_dataset(dataset):

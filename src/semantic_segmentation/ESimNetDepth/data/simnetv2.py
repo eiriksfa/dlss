@@ -11,11 +11,13 @@ from matplotlib import pyplot as plt
 
 class Transformer:
 
-    def __init__(self, width, height, depth=True, augment=True):
+    def __init__(self, width, height, color_mean=[0., 0., 0.], color_std=[1., 1., 1.], depth=True, augment=True):
         self.width = width
         self.height = height
         self.augment = augment
         self.depth = depth
+        self.color_mean = color_mean
+        self.color_std = color_std
 
         self.transformations = [self._to_pil,
                                 self._resize]
@@ -28,6 +30,7 @@ class Transformer:
 
         finalize = [self._to_label,
                     self._to_tensor,
+                    self._normalize,
                     self._combine]
 
         if augment:
@@ -100,6 +103,9 @@ class Transformer:
         img = torch.cat((imgset[0], imgset[1]), 0) if self.depth else imgset[0]
         return img, imgset[2]
 
+    def _normalize(self, imgset):
+        return func.normalize(imgset[0], self.color_mean, self.color_std), imgset[1], imgset[2]
+
 
 class SimNet(data.Dataset):
 
@@ -111,7 +117,8 @@ class SimNet(data.Dataset):
         self.color_mean = color_mean
         self.color_std = color_std
         self.load_depth = load_depth
-        self.transformer = Transformer(width=width, height=height, depth=load_depth, augment=False)
+        self.color_encoding = self.get_color_encoding()
+        self.transformer = Transformer(width=width, height=height, color_mean=color_mean, color_std=color_std, depth=load_depth, augment=False)
 
         self.data = utils.get_dirnames(self.root_dir, mode.lower())
         self.length = len(self.data)
@@ -150,16 +157,13 @@ def main():
     p = Path('D:/data/test')
     ts = SimNet(p, 684, 456)
     img = ts.__getitem__(4)
+    print(img[0].shape)
     s = img[0].numpy().transpose((1, 2, 0))
     plt.imshow(s[:, :, :3])
     plt.show()
     d = s[:, :, 3:] * 65535
     d = d.astype(np.uint16)
     imageio.imwrite('D:/data/test/test.png', d)
-    #plt.imshow(d)
-    #plt.show()
-    #labels = img[1].transpose((1, 2, 0))
-    #labels = np.argmax(img[1], axis=2)
     result = utils.labels_to_image(img[1])
     plt.imshow(result)
     plt.show()

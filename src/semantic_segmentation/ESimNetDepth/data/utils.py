@@ -220,3 +220,5 @@ def median_freq_balancing(dataloader, num_classes):
     med = np.median(freq)
 
     return med / freq
+
+
