@@ -4,14 +4,57 @@ import imageio
 import torch
 import torchvision.transforms as transforms
 from torchvision.transforms import functional as tf
-from skimage.transform import resize
+
+
+# Image - Label mapping
+image_label = {
+    (255, 0, 0): 0,
+    (0, 0, 255): 1,
+    (255, 235, 4): 2,
+    (0, 0, 0): 3,
+    (255, 255, 255): 4
+}
+color_map = np.ndarray(shape=(256 * 256 * 256), dtype='int64')
+color_map[:] = 0
+for rgb, idx in image_label.items():
+    rgb = rgb[0] * 65536 + rgb[1] * 256 + rgb[2]
+    color_map[rgb] = idx
+
+# Label - Image mapping
+label_image = {
+    0: (255, 0, 0),
+    1: (0, 0, 255),
+    2: (255, 235, 4),
+    3: (0, 0, 0),
+    4: (255, 255, 255)
+    }
+likeys, livalues = zip(*label_image.items())
+limap = np.empty((max(likeys) + 1, 3), int)
+limap[list(likeys), :] = livalues
+
+
+def image_to_labels(image):
+    image = np.dot(image, np.array([65536, 256, 1], dtype='int64'))
+    return color_map[image]
+
+
+def labels_to_image(labels):
+    img = limap[labels, :]
+    return img
+
+
+def output_labels_to_image(labels):
+    labels = labels.numpy().transpose((1, 2, 0))
+    labels = np.argmax(labels, axis=2)
+    image = labels_to_image(labels)
+    return image
 
 
 def get_dirnames(base_path, mode):
     base_path = base_path / mode
     depth_base = base_path / 'depth'
     color_base = base_path / 'scene'
-    label_base = base_path / 'label'
+    label_base = base_path / 'color_label'
 
     images = []
 
@@ -74,36 +117,14 @@ def simnet_loader_depth(data_path, depth_path, label_path, width, height, color_
     rgb = np.moveaxis(rgb, 2, 0)
     rgb = rgb.astype(np.float32) / 255.0
 
-    #depth = np.array(imageio.imread(depth_path)).astype(np.float32) / 65535.0
-
-    #rgbd = np.dstack((rgb, depth))
-
-    #tr = transforms.Compose([
-    #    transforms.ToPILImage(),
-    #    transforms.Resize((height, width)),
-    #    transforms.ToTensor(),
-    #    transforms.Normalize(mean=color_mean, std=color_std)
-    #])
-
     # Define normalizing transform
     normalize = transforms.Normalize(mean=color_mean, std=color_std)
     # Convert image to float and map range from [0, 255] to [0.0, 1.0]. Then normalize
     rgb = normalize(torch.Tensor(rgb.astype(np.float32) / 255.0))
 
-    #tr2 = transforms.Compose([
-    #    transforms.ToPILImage(),
-    #    transforms.Resize((height, width)),
-    #    transforms.ToTensor()
-    #])
-
-
-
     # Load depth
     depth = torch.Tensor(np.array(imageio.imread(depth_path)).astype(np.float32) / 65535.0)
     depth = torch.unsqueeze(depth, 0)
-    #rgb = tr(rgbd)
-    #depth = tr2(depth)
-    #depth = torch.unsqueeze(depth, 0)
 
     # Concatenate rgb and depth
     data = torch.cat((rgb, depth), 0)
@@ -111,8 +132,6 @@ def simnet_loader_depth(data_path, depth_path, label_path, width, height, color_
     # Load label
     label = np.array(imageio.imread(label_path)).astype(np.uint8)
     label = label[:, ::2, ::2]
-
-    #label = tr2(label)
 
     return data, label
 

@@ -19,7 +19,7 @@ from src.semantic_segmentation.ESimNetDepth.metric.iou import IoU
 from src.semantic_segmentation.ESimNetDepth.data.utils import enet_weighing, median_freq_balancing
 import src.semantic_segmentation.ESimNetDepth.utils.utils as utils
 
-from src.semantic_segmentation.ESimNetDepth.data.simnet import SimNet as dataset
+from src.semantic_segmentation.ESimNetDepth.data.simnetv2 import SimNet as dataset
 import time
 from tensorboardX import SummaryWriter
 
@@ -33,14 +33,14 @@ COLOR_MEAN = [0.496342, 0.466664, 0.440796]
 COLOR_STD = [0.277856, 0.286230, 0.291129]
 
 # Consts / Args
-IMAGE_HEIGHT = 608
-IMAGE_WIDTH = 912
+IMAGE_HEIGHT = 912
+IMAGE_WIDTH = 1368
 MODE = 'full'
 WEIGHING = 'enet'
 ARCH = 'rgbd'
 
 # Hyperparameters
-BATCH_SIZE = 36
+BATCH_SIZE = 12
 EPOCHS = 40
 LEARNING_RATE = 5e-4
 BETA_0 = 0.9  # betas[0] for Adam Optimizer. Default: 0.9
@@ -53,29 +53,20 @@ LOAD_DEPTH = True
 N_WORKERS = 7
 ROOT_DIR = Path('/home/eirik/Documents/data/dronespot_1/')
 SAVE_DIR = Path('/home/eirik/Documents/data/dronespot_1/models')
-NAME = '912v2'
+NAME = '1368v2'
 PRINT_STEP = 25
 VALIDATE_STEP = 1
 
-LOAD_WEIGHING = Path('/home/eirik/Documents/data/dronespot_1/weighing_912.txt')
+LOAD_WEIGHING = Path('/home/eirik/Documents/data/dronespot_1/weighing_1368.txt')
 
-writer = SummaryWriter('logs/912v2')
+writer = SummaryWriter('logs/1368v2')
 
 
 def load_dataset(dataset):
     print("\nLoading dataset...\n")
 
-    image_transform = transforms.Compose(
-        [transforms.Resize((IMAGE_HEIGHT, IMAGE_WIDTH)),
-         transforms.ToTensor()])
-
-    label_transform = transforms.Compose([
-        transforms.Resize((IMAGE_HEIGHT, IMAGE_WIDTH)),
-        ext_transforms.PILToLongTensor()
-    ])
-
     # Get selected dataset
-    # Load the training set as tensors    self, root_dir, mode='train', color_mean=[0., 0., 0.], color_std=[1., 1., 1.], load_depth=True
+    # Load the training set as tensors
     train_set = dataset(ROOT_DIR, IMAGE_WIDTH, IMAGE_HEIGHT, mode='train', color_mean=COLOR_MEAN, color_std=COLOR_STD, load_depth=LOAD_DEPTH)
     train_loader = data.DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=N_WORKERS)
 
