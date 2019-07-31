@@ -33,33 +33,33 @@ COLOR_MEAN = [0.496342, 0.466664, 0.440796]
 COLOR_STD = [0.277856, 0.286230, 0.291129]
 
 # Consts / Args
-IMAGE_HEIGHT = 912
-IMAGE_WIDTH = 1368
+IMAGE_HEIGHT = 608
+IMAGE_WIDTH = 912
 MODE = 'full'
 WEIGHING = 'enet'
 ARCH = 'rgbd'
 
 # Hyperparameters
-BATCH_SIZE = 12
-EPOCHS = 300
+BATCH_SIZE = 36
+EPOCHS = 40
 LEARNING_RATE = 5e-4
 BETA_0 = 0.9  # betas[0] for Adam Optimizer. Default: 0.9
 BETA_1 = 0.999  # betas[1] for Adam Optimizer. Default: 0.999
-LR_DECAY = 0.1  # The learning rate decay factor. Default: 0.5
-LRD_EPOCHS = 100  # The number of epochs before adjusting the learning rate.
+LR_DECAY = 0.05  # The learning rate decay factor. Default: 0.5
+LRD_EPOCHS = 1  # The number of epochs before adjusting the learning rate.
 W_DECAY = 2e-4  # L2 regularization factor. Default: 2e-4
 
 LOAD_DEPTH = True
 N_WORKERS = 7
 ROOT_DIR = Path('/home/eirik/Documents/data/dronespot_1/')
 SAVE_DIR = Path('/home/eirik/Documents/data/dronespot_1/models')
-NAME = '1368v2'
+NAME = '912v2'
 PRINT_STEP = 25
 VALIDATE_STEP = 1
 
-LOAD_WEIGHING = Path('/home/eirik/Documents/data/dronespot_1/weighing_1368.txt')
+LOAD_WEIGHING = Path('/home/eirik/Documents/data/dronespot_1/weighing_912.txt')
 
-writer = SummaryWriter('logs/1368v2')
+writer = SummaryWriter('logs/912v2')
 
 
 def load_dataset(dataset):
@@ -76,15 +76,15 @@ def load_dataset(dataset):
 
     # Get selected dataset
     # Load the training set as tensors    self, root_dir, mode='train', color_mean=[0., 0., 0.], color_std=[1., 1., 1.], load_depth=True
-    train_set = dataset(ROOT_DIR, mode='train', color_mean=COLOR_MEAN, color_std=COLOR_STD, load_depth=LOAD_DEPTH)
+    train_set = dataset(ROOT_DIR, IMAGE_WIDTH, IMAGE_HEIGHT, mode='train', color_mean=COLOR_MEAN, color_std=COLOR_STD, load_depth=LOAD_DEPTH)
     train_loader = data.DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=N_WORKERS)
 
     # Load the validation set as tensors
-    val_set = dataset(ROOT_DIR, mode='val', color_mean=COLOR_MEAN, color_std=COLOR_STD, load_depth=LOAD_DEPTH)
+    val_set = dataset(ROOT_DIR, IMAGE_WIDTH, IMAGE_HEIGHT, mode='val', color_mean=COLOR_MEAN, color_std=COLOR_STD, load_depth=LOAD_DEPTH)
     val_loader = data.DataLoader(val_set, batch_size=BATCH_SIZE, shuffle=False, num_workers=N_WORKERS)
 
     # Load the test set as tensors
-    test_set = dataset(ROOT_DIR, mode='test', color_mean=COLOR_MEAN, color_std=COLOR_STD, load_depth=LOAD_DEPTH)
+    test_set = dataset(ROOT_DIR, IMAGE_WIDTH, IMAGE_HEIGHT, mode='test', color_mean=COLOR_MEAN, color_std=COLOR_STD, load_depth=LOAD_DEPTH)
     test_loader = data.DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=False, num_workers=N_WORKERS)
 
     # Get encoding between pixel valus in label images and RGB colors

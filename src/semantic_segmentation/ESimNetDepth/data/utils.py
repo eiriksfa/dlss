@@ -3,6 +3,8 @@ import imageio
 
 import torch
 import torchvision.transforms as transforms
+from torchvision.transforms import functional as tf
+from skimage.transform import resize
 
 
 def get_dirnames(base_path, mode):
@@ -51,7 +53,7 @@ def simnet_loader(data_path, label_path, color_mean=[0., 0., 0.], color_std=[1.,
     return data, label
 
 
-def simnet_loader_depth(data_path, depth_path, label_path, color_mean=[0., 0., 0.], color_std=[1., 1., 1.]):
+def simnet_loader_depth(data_path, depth_path, label_path, width, height, color_mean=[0., 0., 0.], color_std=[1., 1., 1.]):
     """Loads a sample and label image given their path as PIL images. (nyu40 classes)
 
     Keyword arguments:
@@ -70,20 +72,47 @@ def simnet_loader_depth(data_path, depth_path, label_path, color_mean=[0., 0., 0
     rgb = rgb[:, :, :3]  # Remove alpha
     # Reshape rgb from H x W x C to C x H x W
     rgb = np.moveaxis(rgb, 2, 0)
+    rgb = rgb.astype(np.float32) / 255.0
+
+    #depth = np.array(imageio.imread(depth_path)).astype(np.float32) / 65535.0
+
+    #rgbd = np.dstack((rgb, depth))
+
+    #tr = transforms.Compose([
+    #    transforms.ToPILImage(),
+    #    transforms.Resize((height, width)),
+    #    transforms.ToTensor(),
+    #    transforms.Normalize(mean=color_mean, std=color_std)
+    #])
+
     # Define normalizing transform
     normalize = transforms.Normalize(mean=color_mean, std=color_std)
     # Convert image to float and map range from [0, 255] to [0.0, 1.0]. Then normalize
     rgb = normalize(torch.Tensor(rgb.astype(np.float32) / 255.0))
 
+    #tr2 = transforms.Compose([
+    #    transforms.ToPILImage(),
+    #    transforms.Resize((height, width)),
+    #    transforms.ToTensor()
+    #])
+
+
+
     # Load depth
     depth = torch.Tensor(np.array(imageio.imread(depth_path)).astype(np.float32) / 65535.0)
     depth = torch.unsqueeze(depth, 0)
+    #rgb = tr(rgbd)
+    #depth = tr2(depth)
+    #depth = torch.unsqueeze(depth, 0)
 
     # Concatenate rgb and depth
     data = torch.cat((rgb, depth), 0)
 
     # Load label
     label = np.array(imageio.imread(label_path)).astype(np.uint8)
+    label = label[:, ::2, ::2]
+
+    #label = tr2(label)
 
     return data, label
 

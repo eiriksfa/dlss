@@ -6,7 +6,7 @@ from pathlib import Path
 
 class SimNet(data.Dataset):
 
-    def __init__(self, root_dir, mode='train', color_mean=[0., 0., 0.], color_std=[1., 1., 1.], load_depth=True):
+    def __init__(self, root_dir, width, height, mode='train', color_mean=[0., 0., 0.], color_std=[1., 1., 1.], load_depth=True):
         self.root_dir = root_dir
         self.mode = mode
         self.color_mean = color_mean
@@ -18,6 +18,9 @@ class SimNet(data.Dataset):
         self.val_data = []
         self.test_data = []
         self.color_encoding = self.get_color_encoding()
+
+        self.width = width
+        self.height = height
 
         print(self.mode)
 
@@ -62,7 +65,7 @@ class SimNet(data.Dataset):
             else:
                 raise RuntimeError('Unexpected dataset mode. Supported modes are: train, val, test')
 
-            rgbd, label = self.loader(data_path, depth_path, label_path, self.color_mean, self.color_std)
+            rgbd, label = self.loader(data_path, depth_path, label_path, self.width, self.height, self.color_mean, self.color_std)
 
             return rgbd, label
 
@@ -88,7 +91,7 @@ class SimNet(data.Dataset):
         return OrderedDict([
             ('unsafe', (255, 0, 0)),
             ('safe', (0, 0, 255)),
-            ('msafe', (0, 255, 255)),
+            ('msafe', (255, 235, 4)),
             ('background', (0, 0, 0)),
             ('unlabeled', (255, 255, 255))
         ])
