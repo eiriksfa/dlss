@@ -1,0 +1,34 @@
+# Mean color, standard deviation (R, G, B)
+COLOR_MEAN = [0.496342, 0.466664, 0.440796]
+COLOR_STD = [0.277856, 0.286230, 0.291129]
+
+# Consts / Args
+IMAGE_HEIGHT = 304 #456
+IMAGE_WIDTH = 456 #684
+MODE = 'full'
+WEIGHING = 'enet'
+ARCH = 'rgbd'
+
+# Hyperparameters
+BATCH_SIZE = 128
+EPOCHS = 30
+LEARNING_RATE = 5e-4
+BETA_0 = 0.9  # betas[0] for Adam Optimizer. Default: 0.9
+BETA_1 = 0.999  # betas[1] for Adam Optimizer. Default: 0.999
+LR_DECAY = 0.05  # The learning rate decay factor. Default: 0.5
+LRD_EPOCHS = 7  # The number of epochs before adjusting the learning rate.
+W_DECAY = 2e-4  # L2 regularization factor. Default: 2e-4
+
+LOAD_DEPTH = True
+N_WORKERS = 7
+ROOT_DIR = Path('/home/eirik/Documents/data/')
+SAVE_DIR = Path('/home/eirik/Documents/data/models')
+NAME = '456v2'
+PRINT_STEP = 1
+VALIDATE_STEP = 1
+DATASET = 'V1'
+
+augmentation
+dataset v3,
+full dataset
+no std calc

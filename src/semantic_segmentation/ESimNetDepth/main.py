@@ -33,31 +33,32 @@ COLOR_MEAN = [0.496342, 0.466664, 0.440796]
 COLOR_STD = [0.277856, 0.286230, 0.291129]
 
 # Consts / Args
-IMAGE_HEIGHT = 912
-IMAGE_WIDTH = 1368
+IMAGE_HEIGHT = 304 #456
+IMAGE_WIDTH = 456 #684
 MODE = 'full'
 WEIGHING = 'enet'
 ARCH = 'rgbd'
 
 # Hyperparameters
-BATCH_SIZE = 12
+BATCH_SIZE = 128
 EPOCHS = 40
 LEARNING_RATE = 5e-4
 BETA_0 = 0.9  # betas[0] for Adam Optimizer. Default: 0.9
 BETA_1 = 0.999  # betas[1] for Adam Optimizer. Default: 0.999
-LR_DECAY = 0.05  # The learning rate decay factor. Default: 0.5
-LRD_EPOCHS = 1  # The number of epochs before adjusting the learning rate.
+LR_DECAY = 0.5  # The learning rate decay factor. Default: 0.5
+LRD_EPOCHS = 5  # The number of epochs before adjusting the learning rate.
 W_DECAY = 2e-4  # L2 regularization factor. Default: 2e-4
 
 LOAD_DEPTH = True
 N_WORKERS = 7
-ROOT_DIR = Path('/home/eirik/Documents/data/dronespot_1/')
-SAVE_DIR = Path('/home/eirik/Documents/data/dronespot_1/models')
-NAME = '1368v2'
-PRINT_STEP = 25
+ROOT_DIR = Path('/home/eirik/Documents/data/')
+SAVE_DIR = Path('/home/eirik/Documents/data/models')
+NAME = '456v3'
+PRINT_STEP = 1
 VALIDATE_STEP = 1
+DATASET = 'V1'
 
-LOAD_WEIGHING = Path('/home/eirik/Documents/data/dronespot_1/weighing_' + NAME + '.txt')
+LOAD_WEIGHING = Path('/home/eirik/Documents/data/weighing_' + NAME + '.txt')
 
 writer = SummaryWriter('logs/' + NAME)
 
@@ -208,9 +209,10 @@ def train(train_loader, val_loader, class_weights, class_encoding):
                   format(epoch, loss, miou))
 
             # Print per class IoU on last epoch or if best iou
-            if epoch + 1 == EPOCHS or miou > best_miou:
-                for key, class_iou in zip(class_encoding.keys(), iou):
-                    print("{0}: {1:.4f}".format(key, class_iou))
+            # if epoch + 1 == EPOCHS or miou > best_miou:
+            for key, class_iou in zip(class_encoding.keys(), iou):
+                print("{0}: {1:.4f}".format(key, class_iou))
+                writer.add_scalar(str(key), class_iou, epoch)
 
             # Save the model if it's the best thus far
             if miou > best_miou:

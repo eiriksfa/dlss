@@ -278,6 +278,6 @@ def median_freq_balancing(dataloader, num_classes):
 
 
 if __name__ == '__main__':
-    m, d = calc_mean_stddev(Path('D:/data/tt2'))
+    m, d = calc_mean_stddev(Path('/home/eirik/Documents/data/'))
     print(m)
     print(d)

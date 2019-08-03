@@ -25,8 +25,8 @@ class Transformer:
         augmentations = [self._adjust_brightness,
                          self._adjust_contrast,
                          self._adjust_gamma,
-                         self._adjust_saturation,
-                         self._rotate]
+                         self._adjust_saturation]
+                         # self._rotate]
 
         finalize = [self._to_label,
                     self._to_tensor,
@@ -109,16 +109,21 @@ class Transformer:
 
 class SimNet(data.Dataset):
 
-    def __init__(self, root_dir, width, height, mode='train', color_mean=[0., 0., 0.], color_std=[1., 1., 1.], load_depth=True):
+    def __init__(self, root_dir, width, height, mode='train',
+                 color_mean=[0., 0., 0.], color_std=[1., 1., 1.],
+                 load_depth=True, augment=True):
         self.root_dir = root_dir
         self.width = width
         self.height = height
+        self.augment = augment
         self.mode = mode
         self.color_mean = color_mean
         self.color_std = color_std
         self.load_depth = load_depth
         self.color_encoding = self.get_color_encoding()
-        self.transformer = Transformer(width=width, height=height, color_mean=color_mean, color_std=color_std, depth=load_depth, augment=False)
+        self.transformer = Transformer(width=width, height=height,
+                                       color_mean=color_mean, color_std=color_std,
+                                       depth=load_depth, augment=self.augment)
 
         self.data = utils.get_dirnames(self.root_dir, mode.lower())
         self.length = len(self.data)
@@ -130,6 +135,8 @@ class SimNet(data.Dataset):
         scene = scene[:, :, :3]  # Remove alpha channel from scene image (should be all 1)
         depth = self._get_image(depth_path)
         depth = depth.astype(np.float32) / 65535.0  # Normalize depth
+        #depth = depth[:, :, :1]
+        #depth = depth.astype(np.float32) / 255
         target = self._get_image(label_path)
         target = target[:, :, :3]  # Remove alpha channel from target image (should be all 1)
 
@@ -154,7 +161,7 @@ class SimNet(data.Dataset):
 
 
 def main():
-    p = Path('D:/data/test')
+    p = Path('/home/eirik/Documents/data/')
     ts = SimNet(p, 684, 456)
     img = ts.__getitem__(4)
     print(img[0].shape)
@@ -163,7 +170,7 @@ def main():
     plt.show()
     d = s[:, :, 3:] * 65535
     d = d.astype(np.uint16)
-    imageio.imwrite('D:/data/test/test.png', d)
+    imageio.imwrite('/home/eirik/Documents/data/test.png', d)
     result = utils.labels_to_image(img[1])
     plt.imshow(result)
     plt.show()
