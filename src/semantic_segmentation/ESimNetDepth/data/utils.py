@@ -1,9 +1,13 @@
 import numpy as np
 import imageio
-
+import multiprocessing as mp
+import cv2
 import torch
 import torchvision.transforms as transforms
 from torchvision.transforms import functional as tf
+from pathlib import Path
+
+CALC_TYPE = "RGB"
 
 
 # Image - Label mapping
@@ -66,6 +70,57 @@ def get_dirnames(base_path, mode):
         if color.is_file() and depth.is_file() and label.is_file():
             images.append((color, depth, label))
     return images
+
+
+def worker(path):
+    if CALC_TYPE == "RGB":
+        cn = 3
+        path = path[0]
+        image = cv2.imread(str(path))
+        image = image.astype(np.float32) / 255.0
+    elif CALC_TYPE == "DEPTH":
+        cn = 1
+        path = path[1]
+        image = cv2.imread(str(path), -2)
+        image = image.astype(np.float32) / 65535.0
+    else:
+        return
+
+    pixel_num = (image.size / cn)
+    channel_sum = np.sum(image, axis=(0, 1))
+    channel_sum_squared = np.sum(np.square(image), axis=(0, 1))
+    return pixel_num, channel_sum, channel_sum_squared
+
+
+def calc_mean_stddev(path):
+    # TODO: Fix for DEpth
+    images = get_dirnames(path, 'train')
+    if CALC_TYPE == "RGB":
+        cn = 3
+    elif CALC_TYPE == "DEPTH":
+        cn = 1
+    else:
+        return
+    pixel_num = 0  # store all pixel number in the dataset
+    channel_sum = np.zeros(cn)
+    channel_sum_squared = np.zeros(cn)
+
+    pool = mp.Pool()
+    results = pool.map(worker, images)
+
+    for (pn, cs, css) in results:
+        pixel_num += pn
+        channel_sum += cs
+        channel_sum_squared += css
+
+    bgr_mean = channel_sum / pixel_num
+    bgr_std = np.sqrt(channel_sum_squared / pixel_num - np.square(bgr_mean))
+    #
+    # change the format from bgr to rgb
+    rgb_mean = list(bgr_mean)[::-1]
+    rgb_std = list(bgr_std)[::-1]
+
+    return rgb_mean, rgb_std
 
 
 def simnet_loader(data_path, label_path, color_mean=[0., 0., 0.], color_std=[1., 1., 1.]):
@@ -222,3 +277,7 @@ def median_freq_balancing(dataloader, num_classes):
     return med / freq
 
 
+if __name__ == '__main__':
+    m, d = calc_mean_stddev(Path('D:/data/tt2'))
+    print(m)
+    print(d)
