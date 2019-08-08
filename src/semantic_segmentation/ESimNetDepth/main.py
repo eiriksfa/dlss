@@ -29,18 +29,22 @@ from tensorboardX import SummaryWriter
 device = torch.device('cuda')
 
 # Mean color, standard deviation (R, G, B)
-COLOR_MEAN = [0.496342, 0.466664, 0.440796]
-COLOR_STD = [0.277856, 0.286230, 0.291129]
+COLOR_MEAN = [0.3558754444970275, 0.3683076898847985, 0.3102764670089978]
+COLOR_STD = [0.1460966414799506, 0.13226721916037815, 0.13365748244322445]
+
+# Correct dataset V1 mean/std
+# [0.36709771782005446, 0.3794294834150933, 0.3223923810959125]
+# [0.15259646732500054, 0.13959276951772048, 0.14415757703998258]
 
 # Consts / Args
-IMAGE_HEIGHT = 304 #456
-IMAGE_WIDTH = 456 #684
+IMAGE_HEIGHT = 512
+IMAGE_WIDTH = 768
 MODE = 'full'
 WEIGHING = 'enet'
 ARCH = 'rgbd'
 
 # Hyperparameters
-BATCH_SIZE = 128
+BATCH_SIZE = 38
 EPOCHS = 40
 LEARNING_RATE = 5e-4
 BETA_0 = 0.9  # betas[0] for Adam Optimizer. Default: 0.9
@@ -50,15 +54,14 @@ LRD_EPOCHS = 5  # The number of epochs before adjusting the learning rate.
 W_DECAY = 2e-4  # L2 regularization factor. Default: 2e-4
 
 LOAD_DEPTH = True
-N_WORKERS = 7
+N_WORKERS = 11
 ROOT_DIR = Path('/home/eirik/Documents/data/')
 SAVE_DIR = Path('/home/eirik/Documents/data/models')
-NAME = '456v3'
+NAME = '768v51'
 PRINT_STEP = 1
 VALIDATE_STEP = 1
-DATASET = 'V1'
 
-LOAD_WEIGHING = Path('/home/eirik/Documents/data/weighing_' + NAME + '.txt')
+LOAD_WEIGHING = Path('/home/eirik/Documents/data/weighing_768v51.txt')
 
 writer = SummaryWriter('logs/' + NAME)
 
@@ -212,7 +215,8 @@ def train(train_loader, val_loader, class_weights, class_encoding):
             # if epoch + 1 == EPOCHS or miou > best_miou:
             for key, class_iou in zip(class_encoding.keys(), iou):
                 print("{0}: {1:.4f}".format(key, class_iou))
-                writer.add_scalar(str(key), class_iou, epoch)
+                if not np.isnan(class_iou):
+                    writer.add_scalar(str(key), class_iou, epoch)
 
             # Save the model if it's the best thus far
             if miou > best_miou:
