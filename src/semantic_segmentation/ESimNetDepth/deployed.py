@@ -6,30 +6,18 @@ import torch
 import torch.nn as nn
 import src.semantic_segmentation.ESimNetDepth.utils.utils as utils
 import imageio
+from src.semantic_segmentation.ESimNetDepth.data.simnetv2 import Transformer as tr
+import src.semantic_segmentation.ESimNetDepth.data.utils as dutils
 
 
-MODEL_PATH = Path('Z:/data/blocks/models')
-MODEL_NAME = 'TEST'
-COLOR_MEAN = [0.496342, 0.466664, 0.440796]
-COLOR_STD = [0.277856, 0.286230, 0.291129]
+MODEL_PATH = Path('D:/data/test/models')
+MODEL_NAME = '1368v51'
+COLOR_MEAN = [0.3558754444970275, 0.3683076898847985, 0.3102764670089978]  # [0.496342, 0.466664, 0.440796]
+COLOR_STD = [0.1460966414799506, 0.13226721916037815, 0.13365748244322445]  # [0.277856, 0.286230, 0.291129]
 device = torch.device('cuda')
 N_CLASSES = 5
 
-COLOR_MAP = [(0, [0, 0, 0]), (1, [0, 0, 255]), (2, [0, 255, 255]), (3, [255, 0, 0])]
-
-
-def rgb_to_rgbd(rgb, depth):
-    normalize = transforms.Normalize(mean=COLOR_MEAN, std=COLOR_STD)
-    rgb = np.array(rgb)
-    rgb = np.moveaxis(rgb, 2, 0)
-    rgb = normalize(torch.Tensor(rgb.astype(np.float32) / 255))
-    depth = torch.Tensor(np.array(depth).astype(np.float32) / 65535.0)
-    depth = torch.unsqueeze(depth, 0)
-
-    # Concatenate rgb and depth
-    data = torch.cat((rgb, depth), 0)
-    data = torch.stack([data])
-    return data
+COLOR_MAP = [(0, [255, 0, 0]), (1, [0, 0, 255]), (2, [255, 235, 0]), (3, [0, 0, 0]), (4, [255, 255, 255])]
 
 
 def pred_to_rgb(pred):
@@ -47,8 +35,15 @@ def load_model():
     return model
 
 
-def predict(rgb, depth, model):
-    data = rgb_to_rgbd(rgb, depth)
+def predict(rgb, depth, model, transformer):
+    rgb = rgb[:, :, :3]  # Remove alpha channel from scene image (should be all 1)
+    depth = depth.astype(np.float32) / 65535.0  # Normalize depth
+    target = np.zeros(rgb.shape).astype(np.uint8)
+    # target = target[:, :, :3]
+
+    data = transformer((rgb, depth, target))
+
+    data = torch.stack([data[0]])
 
     with torch.no_grad():
         preds = model(data)
@@ -60,12 +55,13 @@ def predict(rgb, depth, model):
 
 
 def main():
-    sp = Path('Z:/data/blocks/test/scene/157.png')
-    dp = Path('Z:/data/blocks/test/depth/157.png')
+    sp = Path('D:/data/test/test/scene/152.png')
+    dp = Path('D:/data/test/test/depth/152.png')
+    transformer = tr(1368, 912, color_mean=COLOR_MEAN, color_std=COLOR_STD, augment=False)
     rgb = imageio.imread(sp)
     depth = imageio.imread(dp)
-    result = predict(rgb, depth, load_model())
-    rp = Path('Z:/data/blocks/result.png')
+    result = predict(rgb, depth, load_model(), transformer)
+    rp = Path('D:/data/test/test/result.png')
     imageio.imwrite(rp, result)
 
 
